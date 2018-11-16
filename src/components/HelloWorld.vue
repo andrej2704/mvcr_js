@@ -1,7 +1,13 @@
 <template>
   <div class="hello">
-    <input type="text" v-model="search" />
+    <select class="select" v-model="selected">
+      <option v-for="option in options" v-bind:value="option.value">
+        {{ option.text }}
+      </option>
+    </select>
+    <input type="text" v-model="search" placeholder="OAM-31509" />
     <button v-on:click="getFile">Search</button>
+    <div v-if="fileName">Search in {{ fileName }}</div>
     <h1>{{ found }}</h1>
     <h1>{{ msg }}</h1>
   </div>
@@ -18,13 +24,21 @@ export default {
     return {
       msg: "Search for Visa Status",
       found: "",
-      search: ""
+      search: "",
+      workbook: undefined,
+      selected: "0",
+      options: [
+        { text: "DP", value: 0 },
+        { text: "ZM", value: 1 },
+        { text: "TP", value: 2 }
+      ],
+      fileName: ""
     };
   },
   methods: {
     searchInWorkBook: function(workbook) {
       const vm = this;
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const sheet = workbook.Sheets[workbook.SheetNames[vm.selected]];
       const range = XLSX.utils.decode_range(sheet["!ref"]);
       for (var R = range.s.r; R <= range.e.r; ++R) {
         for (var C = range.s.c; C <= range.e.c; ++C) {
@@ -36,7 +50,7 @@ export default {
           /* if the cell is a text cell with the searched string */
           if (!(cell.t == "s" || cell.t == "str")) continue; // skip if cell is not text
           if (cell.v.includes(vm.search)) {
-            vm.found = "Found!!!";
+            vm.found = "Found!!! Pick it Up!";
           } else {
             vm.found = "NOT Found!!!";
           }
@@ -44,21 +58,19 @@ export default {
       }
     },
     getFile: function() {
-      let workbook = undefined;
       const vm = this;
 
-      if (!workbook) {
-        const prom = axios
+      if (!vm.workbook) {
+        axios
           .get("https://www.mvcr.cz/clanek/informace-o-stavu-rizeni.aspx")
           .then(response => {
             const tmp = response.data;
-            const foundurl =
-              "https://www.mvcr.cz/" +
-              cheerio
-                .load(tmp)(".dark")
-                .attr("href");
-            const url = "https://www.mvcr.cz/soubor/prehled-k-12-11-2018.aspx";
-            fetch(foundurl)
+            const fileName = cheerio
+              .load(tmp)(".dark")
+              .attr("href");
+            vm.fileName = fileName;
+            const fullUrl = "https://www.mvcr.cz/" + fileName;
+            fetch(fullUrl)
               .then(function(res) {
                 /* get the data as a Blob */
                 if (!res.ok) throw new Error("fetch failed");
@@ -68,12 +80,12 @@ export default {
               .then(function(ab) {
                 /* parse the data when it is received */
                 var data = new Uint8Array(ab);
-                workbook = XLSX.read(data, { type: "array" });
-                vm.searchInWorkBook(workbook);
+                vm.workbook = XLSX.read(data, { type: "array" });
+                vm.searchInWorkBook(vm.workbook);
               });
           });
       } else {
-        vm.searchInWorkBook(workbook);
+        vm.searchInWorkBook(vm.workbook);
       }
     }
   }
