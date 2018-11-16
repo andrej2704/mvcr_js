@@ -5,19 +5,18 @@
   "main": "src/main.js",
   "private": true,
   "scripts": {
+    "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
+    "start": "npm run dev",
     "unit": "jest --config test/unit/jest.conf.js --coverage",
     "test": "npm run unit",
     "lint": "eslint --ext .js,.vue src test/unit",
-    "start": "serve -n dist",
-    "build": "NODE_ENV=production node build/build.js",
-    "dev": "node build/dev-server.js"
+    "build": "node build/build.js"
   },
   "dependencies": {
     "axios": "0.18.0",
     "cheerio": "1.0.0-rc.2",
     "vue": "^2.5.2",
-    "xlsx": "0.14.1",
-    "serve": "^9.4.0"
+    "xlsx": "0.14.1"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",
@@ -74,9 +73,5 @@
     "node": ">= 6.0.0",
     "npm": ">= 3.0.0"
   },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not ie <= 8"
-  ]
+  "browserslist": ["> 1%", "last 2 versions", "not ie <= 8"]
 }
