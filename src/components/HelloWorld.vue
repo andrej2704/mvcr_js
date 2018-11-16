@@ -1,6 +1,11 @@
 <template>
   <div class="hello">
-    <input type="text" v-model="search" />
+    <select class="select" v-model="selected">
+      <option v-for="option in options" v-bind:value="option.value">
+        {{ option.text }}
+      </option>
+    </select>
+    <input type="text" v-model="search" placeholder="OAM-31509" />
     <button v-on:click="getFile">Search</button>
     <h1>{{ found }}</h1>
     <h1>{{ msg }}</h1>
@@ -18,13 +23,20 @@ export default {
     return {
       msg: "Search for Visa Status",
       found: "",
-      search: ""
+      search: "",
+      workbook: undefined,
+      selected: "0",
+      options: [
+        { text: "DP", value: 0 },
+        { text: "ZM", value: 1 },
+        { text: "TP", value: 2 }
+      ]
     };
   },
   methods: {
     searchInWorkBook: function(workbook) {
       const vm = this;
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const sheet = workbook.Sheets[workbook.SheetNames[vm.selected]];
       const range = XLSX.utils.decode_range(sheet["!ref"]);
       for (var R = range.s.r; R <= range.e.r; ++R) {
         for (var C = range.s.c; C <= range.e.c; ++C) {
@@ -44,10 +56,9 @@ export default {
       }
     },
     getFile: function() {
-      let workbook = undefined;
       const vm = this;
 
-      if (!workbook) {
+      if (!vm.workbook) {
         const prom = axios
           .get("https://www.mvcr.cz/clanek/informace-o-stavu-rizeni.aspx")
           .then(response => {
@@ -68,12 +79,12 @@ export default {
               .then(function(ab) {
                 /* parse the data when it is received */
                 var data = new Uint8Array(ab);
-                workbook = XLSX.read(data, { type: "array" });
-                vm.searchInWorkBook(workbook);
+                vm.workbook = XLSX.read(data, { type: "array" });
+                vm.searchInWorkBook(vm.workbook);
               });
           });
       } else {
-        vm.searchInWorkBook(workbook);
+        vm.searchInWorkBook(vm.workbook);
       }
     }
   }
