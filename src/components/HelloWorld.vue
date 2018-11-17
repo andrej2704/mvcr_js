@@ -7,6 +7,7 @@
     </select>
     <input type="text" v-model="search" placeholder="OAM-31509" />
     <button v-on:click="getFile">Search</button>
+    <div v-if="fileName">Search in {{ fileName }}</div>
     <h1>{{ found }}</h1>
     <h1>{{ msg }}</h1>
   </div>
@@ -30,7 +31,8 @@ export default {
         { text: "DP", value: 0 },
         { text: "ZM", value: 1 },
         { text: "TP", value: 2 }
-      ]
+      ],
+      fileName: ""
     };
   },
   methods: {
@@ -48,7 +50,7 @@ export default {
           /* if the cell is a text cell with the searched string */
           if (!(cell.t == "s" || cell.t == "str")) continue; // skip if cell is not text
           if (cell.v.includes(vm.search)) {
-            vm.found = "Found!!!";
+            vm.found = "Found!!! Pick it Up!";
           } else {
             vm.found = "NOT Found!!!";
           }
@@ -59,17 +61,16 @@ export default {
       const vm = this;
 
       if (!vm.workbook) {
-        const prom = axios
+        axios
           .get("https://www.mvcr.cz/clanek/informace-o-stavu-rizeni.aspx")
           .then(response => {
             const tmp = response.data;
-            const foundurl =
-              "https://www.mvcr.cz/" +
-              cheerio
-                .load(tmp)(".dark")
-                .attr("href");
-            const url = "https://www.mvcr.cz/soubor/prehled-k-12-11-2018.aspx";
-            fetch(foundurl)
+            const fileName = cheerio
+              .load(tmp)(".dark")
+              .attr("href");
+            vm.fileName = fileName;
+            const fullUrl = "https://www.mvcr.cz/" + fileName;
+            fetch(fullUrl)
               .then(function(res) {
                 /* get the data as a Blob */
                 if (!res.ok) throw new Error("fetch failed");
