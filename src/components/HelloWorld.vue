@@ -43,8 +43,8 @@ export default {
   },
   methods: {
     mvcrApiSearch: function() {
-      this.loadIt = !this.loadIt;
       const vm = this;
+      vm.loadIt = !vm.loadIt;
       axios
         .get("https://mvcr-api.azurewebsites.net/", {
           mode: "no-cors",
