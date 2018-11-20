@@ -6,7 +6,12 @@
       </option>
     </select>
     <input type="text" v-model="search" placeholder="OAM-31509" />
-    <button v-on:click="getFile">Search</button>
+    <button v-on:click="mvcrApiSearch">Search</button>
+    <div class="panel-container" v-if="loadIt">
+      <div class="loading" v-show="loadIt">
+        <div class="glyphicon glyphicon-refresh"></div>
+      </div>
+    </div>
     <div v-if="fileName">Search in {{ fileName }}</div>
     <h1>{{ found }}</h1>
     <h1>{{ msg }}</h1>
@@ -32,10 +37,28 @@ export default {
         { text: "ZM", value: 1 },
         { text: "TP", value: 2 }
       ],
-      fileName: ""
+      fileName: "",
+      loadIt: false
     };
   },
   methods: {
+    mvcrApiSearch: function() {
+      this.loadIt = !this.loadIt;
+      const vm = this;
+      axios
+        .get("https://mvcr-api.azurewebsites.net/", {
+          mode: "no-cors",
+          params: {
+            search: vm.search,
+            page: vm.selected
+          }
+        })
+        .then(res => {
+          vm.found = res.data.found;
+          vm.fileName = res.data.fileName;
+          vm.loadIt = !vm.loadIt;
+        });
+    },
     searchInWorkBook: function(workbook) {
       const vm = this;
       const sheet = workbook.Sheets[workbook.SheetNames[vm.selected]];
@@ -108,5 +131,18 @@ li {
 }
 a {
   color: #42b983;
+}
+
+.glyphicon-refresh {
+  padding: 1rem;
+  animation: spinIt 1.5s infinite linear;
+}
+@keyframes spinIt {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(359deg);
+  }
 }
 </style>
