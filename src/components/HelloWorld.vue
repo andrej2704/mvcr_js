@@ -46,7 +46,7 @@ export default {
       const vm = this;
       vm.loadIt = !vm.loadIt;
       axios
-        .get("https://mvcr-api.azurewebsites.net/", {
+        .get("https://mvcrstatus.herokuapp.com/", {
           mode: "no-cors",
           params: {
             search: vm.search,
